@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菜单</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .menu-category {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .menu-subcategory {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 2px solid #ccc;
+        }
+        .menu-items-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        .menu-item {
+            width: 18%;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+            background-color: #f9f9f9;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .menu-item img {
+            width: 120px;
+            height: 160px;
+            margin-right: 15px;
+        }
+        .menu-item h4 {
+            margin: 0;
+        }
+        .menu-item input {
+            width: 35px;
+            margin-left: 10px;
+        }
+        .menu-item button {
+            margin-left: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .menu-item button:hover {
+            background-color: #218838;
+        }
+
+        /* 购物车按钮的样式 */
+        .cart-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 30px;
+        }
+        .cart-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 购物车内容小窗口的样式 */
+        .cart-content {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 400px;
+            background-color: white;
+            border: 1px solid #ccc;
+            max-height: 300px;
+            overflow: auto;
+            padding: 15px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* 默认隐藏购物车窗口 */
+        }
+
+        .cart-content h4 {
+            margin: 0;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+
+        .cart-content div {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        /* 修改购物车内容小窗口样式 */
+        .cart-content p {
+            margin: 10px 10px; /* 增加上下外边距 */
+        }
+
+        /* 修改购物车内容小窗口内的样式 */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 2px 0; /* 增加上下内边距以保持元素间距 */
+        }
+
+        .cart-item span {
+            flex: 1;
+            text-align: left;
+        }
+
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px; /* 增加元素之间的间距 */
+            position: relative; /* 确保按钮的相对定位 */
+            width: 200px;
+        }
+
+        /* 添加新的按钮样式以保持一致性 */
+        .quantity-controls button {
+            margin: 0 0px; /* 确保按钮之间间距一致 */
+            background-color: #e7e7e7;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px 10px; /* 添加内边距以增加可点击区域 */
+        }
+        
+        .quantity-controls input {
+            margin: 0 5px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .checkout-button {
+            background-color: #2ecc71; /* 绿色 */
+            color: #2ecc71;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .checkout-button:hover {
+            background-color: #27ae60; /* 深绿色 */
+        }
+
+        /* 响应式设计：调整小屏幕上的布局 */
+        @media (max-width: 1200px) {
+            .menu-item {
+                width: 30%; /* 屏幕宽度小于 1200px 时，每个菜单项占 30% 宽度 */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-item {
+                width: 45%; /* 屏幕宽度小于 768px 时，每个菜单项占 45% 宽度 */
+            }
+
+            .cart-content {
+                width: 90%; /* 购物车内容在较小屏幕上占90%宽度 */
+            }
+        }
+
+        @media (max-width: 576px) {
+            .menu-item {
+                width: 100%; /* 屏幕宽度小于 576px 时，每个菜单项占 100% 宽度 */
+            }
+
+            .cart-content {
+                width: 100%; /* 屏幕较小时购物车内容占满屏幕宽度 */
+            }
+        }
+    </style>  
+</head>
+
+<body>
+
+<div class="header">
+    <h1>菜单</h1>
+</div>
+
+<div class="menu-category">
+    <h2>开胃菜</h2>
+    <div class="menu-subcategory">
+        <h3>汤</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="soup.jpg" alt="汤">
+                <div>
+                    <h4>番茄汤</h4>
+                    <p>单价: CHF 5</p>
+                    <input type="number" id="quantity-tomato-soup" value="1" min="1" oninput="updateTotalPrice(this, 5)">
+                    <p>总价: CHF <span id="total-price-tomato-soup">5.00</span></p>
+                    <button onclick="addToCart('番茄汤', 5, document.getElementById('quantity-tomato-soup').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>小吃</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="appetizer.jpg" alt="小吃">
+                <div>
+                    <h4>春卷</h4>
+                    <p>单价: CHF 6</p>
+                    <input type="number" id="quantity-spring-roll" value="1" min="1" oninput="updateTotalPrice(this, 6)">
+                    <p>总价: CHF <span id="total-price-spring-roll">6.00</span></p>
+                    <button onclick="addToCart('春卷', 6, document.getElementById('quantity-spring-roll').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>沙拉</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="salad.jpg" alt="沙拉">
+                <div>
+                    <h4>凯撒沙拉</h4>
+                    <p>单价: CHF 7</p>
+                    <input type="number" id="quantity-caesar-salad" value="1" min="1" oninput="updateTotalPrice(this, 7)">
+                    <p>总价: CHF <span id="total-price-caesar-salad">7.00</span></p>
+                    <button onclick="addToCart('凯撒沙拉', 7, document.getElementById('quantity-caesar-salad').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="menu-category">
+    <h2>主菜</h2>
+    <div class="menu-subcategory">
+        <h3>主食</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="C:\Users\yuhan.wu\Desktop\Command\img\spagetti.jpg" alt="主食">
+                <div>
+                    <h4>意大利面</h4>
+                    <p>单价: CHF 12</p>
+                    <input type="number" id="quantity-pasta" value="1" min="1" oninput="updateTotalPrice(this, 12)">
+                    <p>总价: CHF <span id="total-price-pasta">12.00</span></p>
+                    <button onclick="addToCart('意大利面', 12, document.getElementById('quantity-pasta').value)">下单</button>
+                </div>
+            </div>
+            <div class="menu-item">
+                <img src="C:\Users\yuhan.wu\Desktop\Command\img\rice.jpeg" alt="主食">
+                <div>
+                    <h4>米饭</h4>
+                    <p>单价: CHF 3</p>
+                    <input type="number" id="quantity-rice" value="1" min="1" oninput="updateTotalPrice(this, 3)">
+                    <p>总价: CHF <span id="total-price-rice">3.00</span></p>
+                    <button onclick="addToCart('米饭', 3, document.getElementById('quantity-rice').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>寿司</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="sushi.jpg" alt="寿司">
+                <div>
+                    <h4>三文鱼寿司</h4>
+                    <p>单价: CHF 15</p>
+                    <input type="number" id="quantity-salmon-sushi" value="1" min="1" oninput="updateTotalPrice(this, 15)">
+                    <p>总价: CHF <span id="total-price-salmon-sushi">15.00</span></p>
+                    <button onclick="addToCart('三文鱼寿司', 15, document.getElementById('quantity-salmon-sushi').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>牛肉</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="beef.jpg" alt="牛肉">
+                <div>
+                    <h4>牛排</h4>
+                    <p>单价: CHF 25</p>
+                    <input type="number" id="quantity-steak" value="1" min="1" oninput="updateTotalPrice(this, 25)">
+                    <p>总价: CHF <span id="total-price-steak">25.00</span></p>
+                    <button onclick="addToCart('牛排', 25, document.getElementById('quantity-steak').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>鸡肉</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="chicken.jpg" alt="鸡肉">
+                <div>
+                    <h4>烤鸡</h4>
+                    <p>单价: CHF 18</p>
+                    <input type="number" id="quantity-roast-chicken" value="1" min="1" oninput="updateTotalPrice(this, 18)">
+                    <p>总价: CHF <span id="total-price-roast-chicken">18.00</span></p>
+                    <button onclick="addToCart('烤鸡', 18, document.getElementById('quantity-roast-chicken').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>猪肉</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="pork.jpg" alt="猪肉">
+                <div>
+                    <h4>烤猪肉</h4>
+                    <p>单价: CHF 20</p>
+                    <input type="number" id="quantity-roast-pork" value="1" min="1" oninput="updateTotalPrice(this, 20)">
+                    <p>总价: CHF <span id="total-price-roast-pork">20.00</span></p>
+                    <button onclick="addToCart('烤猪肉', 20, document.getElementById('quantity-roast-pork').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>海鲜</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="seafood.jpg" alt="海鲜">
+                <div>
+                    <h4>虾仁</h4>
+                    <p>单价: CHF 22</p>
+                    <input type="number" id="quantity-shrimp" value="1" min="1" oninput="updateTotalPrice(this, 22)">
+                    <p>总价: CHF <span id="total-price-shrimp">22.00</span></p>
+                    <button onclick="addToCart('虾仁', 22, document.getElementById('quantity-shrimp').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="menu-category">
+    <h2>饮品</h2>
+    <div class="menu-subcategory">
+        <h3>饮料</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="soft_drink.jpg" alt="饮料">
+                <div>
+                    <h4>可乐</h4>
+                    <p>单价: CHF 3</p>
+                    <input type="number" id="quantity-coke" value="1" min="1" oninput="updateTotalPrice(this, 3)">
+                    <p>总价: CHF <span id="total-price-coke">3.00</span></p>
+                    <button onclick="addToCart('可乐', 3, document.getElementById('quantity-coke').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>啤酒</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="beer.jpg" alt="啤酒">
+                <div>
+                    <h4>瑞士啤酒</h4>
+                    <p>单价: CHF 5</p>
+                    <input type="number" id="quantity-beer" value="1" min="1" oninput="updateTotalPrice(this, 5)">
+                    <p>总价: CHF <span id="total-price-beer">5.00</span></p>
+                    <button onclick="addToCart('瑞士啤酒', 5, document.getElementById('quantity-beer').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>红酒</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="red_wine.jpg" alt="红酒">
+                <div>
+                    <h4>法国红酒</h4>
+                    <p>单价: CHF 30</p>
+                    <input type="number" id="quantity-red-wine" value="1" min="1" oninput="updateTotalPrice(this, 30)">
+                    <p>总价: CHF <span id="total-price-red-wine">30.00</span></p>
+                    <button onclick="addToCart('法国红酒', 30, document.getElementById('quantity-red-wine').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>白酒</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="white_wine.jpg" alt="白酒">
+                <div>
+                    <h4>意大利白酒</h4>
+                    <p>单价: CHF 28</p>
+                    <input type="number" id="quantity-white-wine" value="1" min="1" oninput="updateTotalPrice(this, 28)">
+                    <p>总价: CHF <span id="total-price-white-wine">28.00</span></p>
+                    <button onclick="addToCart('意大利白酒', 28, document.getElementById('quantity-white-wine').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="menu-category">
+    <h2>甜品</h2>
+    <div class="menu-subcategory">
+        <h3>冰淇淋</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="ice_cream.jpg" alt="冰淇淋">
+                <div>
+                    <h4>香草冰淇淋</h4>
+                    <p>单价: CHF 4</p>
+                    <input type="number" id="quantity-vanilla-ice-cream" value="1" min="1" oninput="updateTotalPrice(this, 4)">
+                    <p>总价: CHF <span id="total-price-vanilla-ice-cream">4.00</span></p>
+                    <button onclick="addToCart('香草冰淇淋', 4, document.getElementById('quantity-vanilla-ice-cream').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>Mochi</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="mochi.jpg" alt="Mochi">
+                <div>
+                    <h4>抹茶Mochi</h4>
+                    <p>单价: CHF 5</p>
+                    <input type="number" id="quantity-matcha-mochi" value="1" min="1" oninput="updateTotalPrice(this, 5)">
+                    <p>总价: CHF <span id="total-price-matcha-mochi">5.00</span></p>
+                    <button onclick="addToCart('抹茶Mochi', 5, document.getElementById('quantity-matcha-mochi').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-subcategory">
+        <h3>炸物</h3>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <img src="fried_food.jpg" alt="炸物">
+                <div>
+                    <h4>炸香蕉</h4>
+                    <p>单价: CHF 6</p>
+                    <input type="number" id="quantity-fried-banana" value="1" min="1" oninput="updateTotalPrice(this, 6)">
+                    <p>总价: CHF <span id="total-price-fried-banana">6.00</span></p>
+                    <button onclick="addToCart('炸香蕉', 6, document.getElementById('quantity-fried-banana').value)">下单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 购物车按钮 -->
+<button class="cart-button" onclick="toggleCart()">🛒</button>
+
+<!-- 购物车内容小窗口 -->
+<div id="cart-content" class="cart-content">
+    <h4>已下单菜品</h4>
+    <div id="cart-items"></div>
+    <p>总价: CHF <span id="total-cart-price">0.00</span></p>
+    <button onclick="goToCart()">结算</button>
+</div>
+
+
+<script>
+    // 定义购物车数组和总价变量
+    let cartItems = []; // 购物车中的物品
+    let totalCartPrice = 0; // 购物车总价
+    let cartVisible = false; // 购物车是否可见的状态
+
+    // 添加到购物车的函数
+    function addToCart(name, price, quantity) {
+        quantity = parseInt(quantity);
+        const itemIndex = cartItems.findIndex(item => item.name === name);
+
+        if (itemIndex > -1) {
+            cartItems[itemIndex].quantity += quantity;
+        } else {
+            cartItems.push({ name, price, quantity });
+        }
+        localStorage.setItem('cartItems', JSON.stringify(cartItems))
+        updateCartDisplay();
+        window.alert("下单成功 ! "+ name + " × " + quantity)
+    }
+
+    // 从购物车减少数量的函数
+    function removeFromCart(name) {
+        const itemIndex = cartItems.findIndex(item => item.name === name);
+        if (itemIndex > -1) {
+            cartItems[itemIndex].quantity -= 1;
+            if (cartItems[itemIndex].quantity <= 0) {
+                cartItems.splice(itemIndex, 1);
+            }
+        }
+        localStorage.setItem('cartItems', JSON.stringify(cartItems))
+        updateCartDisplay();
+    }
+
+    // 更新购物车显示的函数
+    function updateCartDisplay() {
+        document.getElementById('cart-content').style.display = 'block';
+        const cartItemsDiv = document.getElementById('cart-items');
+        cartItemsDiv.innerHTML = ''; // 清空当前购物车内容
+        totalCartPrice = 0; // 重置总价
+        
+        cartItems.forEach(item => {
+            const itemTotalPrice = item.price * item.quantity;
+            totalCartPrice += itemTotalPrice;
+
+            // 创建购物车项的 HTML
+            const cartItem = document.createElement('div');
+            cartItem.classList.add('cart-item');
+            cartItem.innerHTML = `
+                <span>${item.name} (CHF ${item.price})</span>
+                <div class="quantity-controls">
+                    <button onclick="removeFromCart('${item.name}')">-</button>
+                    <input type="text" value="${item.quantity}" readonly>
+                    <span>CHF ${itemTotalPrice.toFixed(2)}</span>
+                </div>
+            `;
+            cartItemsDiv.appendChild(cartItem);
+        });
+
+        document.getElementById('total-cart-price').innerText = totalCartPrice.toFixed(2);
+    }
+
+
+
+    // 切换购物车显示
+    function toggleCart() {
+        const cartContent = document.getElementById('cart-content');
+        
+        // 判断购物车当前状态并切换显示
+        if (cartVisible) {
+            cartContent.style.display = 'none'; // 隐藏购物车
+        } else {
+            cartContent.style.display = 'block'; // 显示购物车
+        }
+        
+        cartVisible = !cartVisible; // 切换购物车可见状态
+    }
+
+    // 点击屏幕其他地方时关闭购物车
+    document.addEventListener('click', function(event) {
+        const cartButton = document.querySelector('.cart-button');
+        const cartContent = document.getElementById('cart-content');
+        
+        // 如果点击的不是购物车按钮或购物车内容，则关闭购物车
+        if (!cartButton.contains(event.target) && !cartContent.contains(event.target)) {
+            cartContent.style.display = 'none';
+            cartVisible = false;
+        }
+    });
+
+    // 查看购物车页面（可以链接到表单或结算页面）
+    function goToCart() {
+        window.location.href = 'checkout_zh.html';
+    }
+
+    // 实时更新每个菜单项的总价
+    function updateTotalPrice(input, price) {
+        const totalPriceElement = input.nextElementSibling.querySelector('span');
+        const quantity = input.value;
+        const totalPrice = (quantity * price).toFixed(2);
+        totalPriceElement.textContent = totalPrice;
+    }
+    
+</script>
+
+</body>
+</html>
