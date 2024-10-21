@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>结算页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .checkout-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .order-summary {
+            margin-bottom: 20px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+        .order-item span {
+            flex: 1;
+        }
+        .total, .tax {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #333;
+        }
+        .checkout-button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+            text-align: center;
+        }
+        .checkout-button:hover {
+            background-color: #27ae60;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="checkout-container">
+        <h2>订单结算</h2>
+        
+        <!-- 堂食或外卖选择 -->
+        <div class="form-group">
+            <label for="dine-option">请选择堂食还是外卖</label>
+            <select id="dine-option" onchange="handleDineOptionChange()">
+                <option value="dine-in">堂食</option>
+                <option value="takeaway">外卖</option>
+            </select>
+        </div>
+
+        <!-- 堂食时显示桌号 -->
+        <div class="form-group hidden" id="table-number-group">
+            <label for="table-number">桌号</label>
+            <input type="text" id="table-number" placeholder="请输入桌号">
+        </div>
+
+        <!-- 外卖时显示姓名和电话 -->
+        <div class="form-group hidden" id="name-group">
+            <label for="name">姓名</label>
+            <input type="text" id="name" placeholder="请输入您的姓名">
+        </div>
+
+        <div class="form-group hidden" id="phone-group">
+            <label for="phone">电话号码</label>
+            <input type="text" id="phone" placeholder="请输入您的电话号码">
+        </div>
+
+        <!-- 外卖时显示取餐时间选择 -->
+        <div class="form-group hidden" id="pickup-time-group">
+            <label for="pickup-time">选择取餐时间 (10:30-15:00 ; 17:00-22:30)</label>
+            <input type="datetime-local" id="pickup-time" min="" max="">
+            <span id="time-error" style="color: red; display: none;">取餐时间必须在上午10:30到下午15:00或晚上17:00到22:30之间。</span>
+        </div>
+
+        <!-- 订单列表 -->
+        <div class="order-summary">
+            <h3>订单详情</h3>
+            <div id="order-items">
+                <!-- 这里的订单会通过JavaScript动态生成 -->
+            </div>
+
+            <!-- TVA 和 总金额 -->
+            <div class="tax">
+                <span id="tax-label">TVA (7.7%)：</span>
+                <span id="tax-amount">CHF 0.00</span>
+            </div>
+            <div class="total">
+                <span>总金额：</span>
+                <span id="total-amount">CHF 0.00</span>
+            </div>
+        </div>
+
+        <!-- 备注 -->
+        <div class="form-group">
+            <label for="note">备注</label>
+            <textarea id="note" rows="3" placeholder="可选，填写额外备注"></textarea>
+        </div>
+
+        <!-- 提交按钮 -->
+        <button class="checkout-button" onclick="submitOrder()">提交订单</button>
+    </div>
+
+    <script>
+    let taxRate = 0.077; // 默认堂食TVA
+
+    // 从localStorage获取购物车数据
+    function getCart() {
+        const cart = localStorage.getItem('cartItems');
+        return cart ? JSON.parse(cart) : [];
+    }
+
+    // 动态生成订单
+    function renderOrder() {
+        const cart = getCart(); 
+        const orderItemsContainer = document.getElementById('order-items'); 
+        orderItemsContainer.innerHTML = '';
+
+        let subtotal = 0;
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+
+            const orderItem = document.createElement('div');
+            orderItem.classList.add('order-item'); 
+            orderItem.innerHTML = `
+                <span>${item.name}</span>
+                <span>CHF ${item.price.toFixed(2)}</span>
+                <span>${item.quantity}</span>
+                <span>CHF ${itemTotal.toFixed(2)}</span>
+            `;
+            orderItemsContainer.appendChild(orderItem);
+        });
+
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax;
+
+        document.getElementById('tax-amount').innerText = `CHF ${tax.toFixed(2)}`;
+        document.getElementById('total-amount').innerText = `CHF ${total.toFixed(2)}`;
+    }
+
+    // 处理堂食或外卖选项变化
+    function handleDineOptionChange() {
+        const dineOption = document.getElementById('dine-option').value;
+        const tableNumberGroup = document.getElementById('table-number-group');
+        const nameGroup = document.getElementById('name-group');
+        const phoneGroup = document.getElementById('phone-group');
+        const pickupTimeGroup = document.getElementById('pickup-time-group');
+        const taxLabel = document.getElementById('tax-label');
+
+        if (dineOption === 'dine-in') {
+            taxRate = 0.077; // 堂食TVA
+            taxLabel.innerText = 'TVA (7.7%)：';
+            tableNumberGroup.classList.remove('hidden'); // 显示桌号输入框
+            nameGroup.classList.add('hidden');           // 隐藏姓名输入框
+            phoneGroup.classList.add('hidden');          // 隐藏电话输入框
+            pickupTimeGroup.classList.add('hidden');     // 隐藏取餐时间
+        } else {
+            taxRate = 0.025; // 外卖TVA
+            taxLabel.innerText = 'TVA (2.5%)：';
+            tableNumberGroup.classList.add('hidden');    // 隐藏桌号输入框
+            nameGroup.classList.remove('hidden');        // 显示姓名输入框
+            phoneGroup.classList.remove('hidden');       // 显示电话输入框
+            pickupTimeGroup.classList.remove('hidden');  // 显示取餐时间
+        }
+
+        renderOrder(); // 重新渲染订单，计算新的TVA
+    }
+
+
+    // 验证取餐时间是否符合规定的时间段
+    function validatePickupTime() {
+        const pickupTimeInput = document.getElementById('pickup-time');
+        const selectedTime = new Date(pickupTimeInput.value);
+        const timeError = document.getElementById('time-error');
+        
+        const startTime1 = new Date(selectedTime);
+        startTime1.setHours(10, 30, 0); // 上午10:30
+        const endTime1 = new Date(selectedTime);
+        endTime1.setHours(15, 0, 0); // 下午15:00
+        
+        const startTime2 = new Date(selectedTime);
+        startTime2.setHours(17, 0, 0); // 晚上17:00
+        const endTime2 = new Date(selectedTime);
+        endTime2.setHours(22, 30, 0); // 晚上22:30
+
+        if ((selectedTime >= startTime1 && selectedTime <= endTime1) || (selectedTime >= startTime2 && selectedTime <= endTime2)) {
+            timeError.style.display = 'none';
+            return true;
+        } else {
+            timeError.style.display = 'block';
+            return false;
+        }
+    }
+
+
+    // 提交订单
+    function submitOrder() {
+        const dineOption = document.getElementById('dine-option').value;
+        const tableNumber = dineOption === 'dine-in' ? document.getElementById('table-number').value : null;
+        const name = dineOption === 'takeaway' ? document.getElementById('name').value : null;
+        const phone = dineOption === 'takeaway' ? document.getElementById('phone').value : null;
+        const pickupTime = dineOption === 'takeaway' ? document.getElementById('pickup-time').value : null;
+        const note = document.getElementById('note').value;
+
+        const order = {
+            tableNumber: tableNumber,
+            name: name,
+            phone: phone,
+            pickupTime: pickupTime,
+            items: getCart(),
+            dineOption: dineOption,
+            note: note
+        };
+
+        if (document.getElementById('dine-option').value === 'takeaway' && !validatePickupTime()) {
+        return; // 如果时间无效，则不提交订单
+        }
+
+        console.log('提交订单:', order);
+        alert('订单已提交成功！');
+        localStorage.removeItem('cartItems');
+        window.location.href = "order-confirmation.html";
+    }
+
+    window.onload = function() {
+        renderOrder();
+    };
+
+    </script>
+
+</body>
+</html>
